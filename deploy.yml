@@ -1,0 +1,103 @@
+name: Deploy Application
+
+on:
+  push:
+    branches:
+      - main # Trigger deployment on push to the main branch
+
+jobs:
+  deploy-frontend:
+    name: Deploy Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18' # Use the Node.js version your project requires
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build frontend
+        run: npm run build
+        env:
+          # Set build-time env vars for the frontend
+          VITE_STRIPE_PUBLIC_KEY: ${{ secrets.VITE_STRIPE_PUBLIC_KEY }}
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }} # URL of your deployed backend
+
+      # Example: Deploy to Netlify using Netlify CLI
+      - name: Deploy to Netlify
+        uses: netlify/actions/cli@master
+        with:
+          args: deploy --dir=dist/public --prod # Specify the build output directory
+        env:
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+
+      # --- OR --- Example: Deploy to Vercel using Vercel CLI
+      # - name: Install Vercel CLI
+      #   run: npm install --global vercel@latest
+      # - name: Deploy to Vercel
+      #   run: vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
+      #   # Vercel might auto-detect settings, or you might need more flags
+
+  deploy-backend:
+    name: Deploy Backend
+    runs-on: ubuntu-latest
+    needs: deploy-frontend # Optional: wait for frontend deploy if needed
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Example: Trigger Render Deploy Hook
+      - name: Trigger Render Deploy
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        # Render automatically pulls latest code, builds, and deploys
+        # Ensure Render service is configured to watch the 'main' branch
+        # Environment variables (DB_URL, STRIPE_SECRET, etc.) are set in Render UI
+
+      # --- OR --- Example: Deploy using Docker (if hosting supports it)
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v2
+      # - name: Login to Docker Hub (or other registry)
+      #   uses: docker/login-action@v2
+      #   with:
+      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # - name: Build and push backend image
+      #   uses: docker/build-push-action@v4
+      #   with:
+      #     context: .
+      #     dockerfile: Dockerfile # Your backend Dockerfile
+      #     push: true
+      #     tags: your-dockerhub-username/game-store-backend:latest
+      #     # Add build args for secrets if needed and safe
+      # - name: SSH into server and pull/run new image
+      #   # This step depends heavily on your specific backend hosting
+      #   run: |
+      #     echo "SSH deployment steps here..."
+
+  # Optional: Job to run database migrations
+  run-migrations:
+    name: Run DB Migrations
+    runs-on: ubuntu-latest
+    needs: deploy-backend # Run after backend is deployed
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Migrations
+        run: npm run db:push # Or your specific migration command
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }} # Use the deployed DB URL

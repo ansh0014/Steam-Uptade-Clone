@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 213 19% 10%;
+    --foreground: 210 40% 96%;
+    
+    --card: 210 29% 18%;
+    --card-foreground: 0 0% 100%;
+    
+    --popover: 213 19% 10%;
+    --popover-foreground: 210 40% 96%;
+    
+    --primary: 199 79% 60%;
+    --primary-foreground: 0 0% 100%;
+    
+    --secondary: 205 37% 13%;
+    --secondary-foreground: 0 0% 100%;
+    
+    --muted: 205 37% 13%;
+    --muted-foreground: 214 10% 62%;
+    
+    --accent: 205 37% 13%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 205 37% 26%;
+    --input: 205 37% 26%;
+    --ring: 205 37% 26%;
+    
+    --radius: 0.5rem;
+
+    /* Steam colors */
+    --steam-blue: 199 79% 60%;
+    --steam-dark-blue: 210 29% 18%;
+    --steam-black: 213 19% 10%;
+    --steam-light-gray: 200 14% 83%;
+    --steam-dark-gray: 205 37% 26%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-steam-black text-steam-light-gray font-sans antialiased;
+  }
+}
+
+/* Custom styles for Steam look and feel */
+@layer components {
+  .game-card {
+    @apply bg-steam-dark-blue rounded-lg overflow-hidden hover:shadow-lg transition-shadow cursor-pointer;
+  }
+  
+  .game-tag {
+    @apply bg-gray-700 text-white px-2 py-1 rounded text-sm;
+  }
+  
+  .discount-tag {
+    @apply inline-flex items-center bg-green-800 text-white text-xs px-2 py-1 rounded;
+  }
+  
+  .new-release-tag {
+    @apply inline-flex items-center bg-blue-600 text-white text-xs px-2 py-1 rounded;
+  }
+  
+  .popular-tag {
+    @apply inline-flex items-center bg-gray-700 text-white text-xs px-2 py-1 rounded;
+  }
+  
+  .free-tag {
+    @apply text-green-500 font-bold;
+  }
+}
